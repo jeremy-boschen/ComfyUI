@@ -347,6 +347,11 @@ class AudioSaveHelper:
                     out_stream.bit_rate = 320000
             else:  # format == "flac":
                 out_stream = output_container.add_stream("flac", rate=sample_rate, layout=layout)
+                # The frame below is float32; without an explicit output format the FLAC
+                # encoder falls back to its first supported sample format, s16, and silently
+                # truncates to 16-bit. s32 is the encoder's other option and yields 24-bit
+                # FLAC, matching what the audio models actually produce.
+                out_stream.format = "s32"
 
             frame = av.AudioFrame.from_ndarray(
                 waveform.movedim(0, 1).reshape(1, -1).float().numpy(),
